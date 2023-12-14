@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    
+    @StateObject var locationViewModel = LocationViewModel()
     @StateObject var weatherViewModel = WeatherViewModel()
     @State var ubicacion: String = ""
     
@@ -9,9 +9,23 @@ struct ContentView: View {
         ZStack {
             VStack{
                 VStack {
-                    
                     HStack {
-                        TextField("Inserta uns ubicación", text: $ubicacion).textFieldStyle(.roundedBorder).frame(width: 250, height: 50)
+                        Button {
+                            Task{
+                                    reverseGeocodeLocation(latitude: locationViewModel.userLocation.center.latitude, longitude: locationViewModel.userLocation.center.longitude){ city in
+                                        if let city = city {
+                                            print("Ciudad más cercana: \(city)")
+                                            ubicacion = city
+                                        } else {
+                                            print("No se encontró la ciudad más cercana.")
+                                        }
+                                    }
+                                    await weatherViewModel.getWeather(name: "\(ubicacion)")
+                            }
+                        } label: {
+                            Image(systemName: "location.fill").resizable().scaledToFit().frame(width: 35).foregroundColor(.white)
+                        }
+                        TextField("Inserta una ubicación", text: $ubicacion).textFieldStyle(.roundedBorder).frame(width: 250, height: 50)
                         Button {
                             Task {
                                 await weatherViewModel.getWeather(name: "\(ubicacion)")
